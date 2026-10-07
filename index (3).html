@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Zumba Class Coach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: phone-first single column app, sticky header, bottom tab bar; Plan is a timed class running order, Teach is a big-type stage for a propped-up phone */
+:root{
+  --bg:#FBF5F8; --surface:#FFFFFF; --ink:#26152C; --muted:#6F5C75; --line:#EBDDE6;
+  --accent:#D81F5B; --accent-ink:#FFFFFF; --soft:#FCE4EC;
+  --c-mer:#D81F5B; --c-sal:#C77F00; --c-cum:#0B8F80; --c-reg:#6E44CF; --c-pop:#1F72C4; --c-warm:#3E8E2E; --c-cool:#6B7F91;
+  --display:"Unbounded", "Arial Black", system-ui, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#160E1A; --surface:#221828; --ink:#F7EEF5; --muted:#B9A6BE; --line:#3A2C41;
+  --accent:#FF4F86; --accent-ink:#1A0D14; --soft:#3A1B2A;
+  --c-mer:#FF4F86; --c-sal:#FFC24D; --c-cum:#2FCDB9; --c-reg:#A788F2; --c-pop:#6FA8FF; --c-warm:#7CCB6A; --c-cool:#9FB3C6; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#160E1A; --surface:#221828; --ink:#F7EEF5; --muted:#B9A6BE; --line:#3A2C41;
+  --accent:#FF4F86; --accent-ink:#1A0D14; --soft:#3A1B2A;
+  --c-mer:#FF4F86; --c-sal:#FFC24D; --c-cum:#2FCDB9; --c-reg:#A788F2; --c-pop:#6FA8FF; --c-warm:#7CCB6A; --c-cool:#9FB3C6; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:8px 128px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.top .wrap{padding-block:12px}
+.brand{font-family:var(--display);font-weight:800;font-size:1.15rem;letter-spacing:-.01em;margin:0}
+.brand span{color:var(--accent)}
+h2{font-family:var(--display);font-weight:700;font-size:1.35rem;margin:20px 0 4px;text-wrap:balance}
+h3.sub{font-family:var(--display);font-size:1rem;margin:24px 0 8px}
+.lede{color:var(--muted);margin:0 0 16px;max-width:60ch}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+.tabs div{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.tabs button{background:none;border:0;border-radius:12px;padding:12px 2px;font-weight:600;font-size:.85rem;color:var(--muted)}
+.tabs button[aria-current="page"]{background:var(--soft);color:var(--accent)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:600;font-size:.9rem;display:inline-flex;align-items:center;gap:8px}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:700;background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn.sm{padding:7px 12px;font-size:.88rem;border-radius:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h3{margin:0;font-size:1.05rem;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.card p{margin:0}
+.tag{font-size:.78rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+.lvl{font-size:.75rem;color:var(--muted);white-space:nowrap}
+.cue{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--soft);border-radius:12px;padding:8px 12px;margin-top:auto}
+.cue b{font-size:1.05rem}
+.cue small{display:block;color:var(--muted)}
+.speak{border:0;background:var(--surface);border-radius:50%;width:36px;height:36px;flex:none;font-size:1rem;display:grid;place-items:center}
+.muted{color:var(--muted)}
+
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field input,.field select{border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;width:100%}
+.form{display:grid;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
+.two{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+.three{display:grid;grid-template-columns:2fr 2fr 1fr;gap:12px}
+@media (max-width:520px){.two,.three{grid-template-columns:1fr}}
+
+.list{list-style:none;margin:12px 0;padding:0;display:grid;gap:8px}
+.it{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.it .when{font-variant-numeric:tabular-nums;font-size:.8rem;color:var(--muted);width:44px;text-align:right}
+.it .what{min-width:0}
+.it .what b{display:block;overflow-wrap:anywhere}
+.it .what span{color:var(--muted);font-size:.88rem}
+.it .act{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.it.brk{background:transparent;border-style:dashed;padding:8px 14px}
+@media (max-width:520px){.it{grid-template-columns:auto 1fr}.it .act{grid-column:1/-1;justify-content:flex-start}}
+.stripe{border-left:5px solid var(--line)}
+
+.map .sec{font-family:var(--display);font-size:.78rem;font-weight:700;width:92px}
+.map .sec small{display:block;font-family:var(--body);font-weight:400;color:var(--muted)}
+.flow{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}
+.flow span{font-size:.78rem;border:1px solid var(--line);border-radius:999px;padding:2px 10px;background:var(--surface)}
+.tips{background:var(--soft);border-radius:16px;padding:14px 16px;margin:16px 0}
+.tips ul{margin:6px 0 0;padding-left:20px}
+.example{font-size:.75rem;font-weight:600;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:1px 8px;font-family:var(--body)}
+.summary{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--muted);font-size:.9rem;margin:0 0 4px}
+
+/* Teach stage */
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:20px 16px;display:grid;gap:14px;text-align:center}
+.secline{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);text-align:left}
+.count{font-family:var(--display);font-weight:800;font-size:clamp(88px,28vw,168px);line-height:.95;font-variant-numeric:tabular-nums}
+.count.one{color:var(--accent)}
+.count.hit{animation:hit .18s ease-out}
+@keyframes hit{from{transform:scale(1.08)}to{transform:scale(1)}}
+.beats{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;max-width:420px;margin:0 auto;width:100%}
+.beats i{height:10px;border-radius:5px;background:var(--line)}
+.beats i.on{background:var(--accent)}
+.beats i.done{background:var(--muted);opacity:.45}
+.now h3{font-family:var(--display);font-size:clamp(1.3rem,5vw,1.9rem);margin:0;text-wrap:balance}
+.now .cueline{font-size:clamp(1.4rem,6vw,2.1rem);font-weight:700;color:var(--accent);line-height:1.2}
+.next{border-radius:14px;border:1.5px dashed var(--line);padding:10px 14px;text-align:left;transition:background .15s}
+.next.cuenow{border-style:solid;border-color:var(--accent);background:var(--soft)}
+.next b{font-size:1.05rem}
+.controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.bpm{display:flex;align-items:center;gap:6px;background:var(--bg);border-radius:12px;padding:4px}
+.bpm button{border:0;background:var(--surface);border-radius:9px;width:40px;height:40px;font-weight:700;font-size:1.1rem}
+.bpm output{min-width:84px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.toggle[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.howto{text-align:left;display:grid;gap:4px}
+.mirror{font-size:.85rem;color:var(--muted)}
+
+.phr{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.phr .p{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.phr .p b{font-size:1.1rem;display:block}
+.phr .p small{color:var(--muted);display:block}
+.note{font-size:.85rem;color:var(--muted);margin-top:8px}
+@media (prefers-reduced-motion:reduce){.count.hit{animation:none}}
+</style>
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap"><p class="brand">Zumba <span>Class Coach</span></p></div></header>
+
+<main class="wrap">
+  <!-- PLAN -->
+  <section id="tab-plan">
+    <h2>Plan a class</h2>
+    <p class="lede">Get a full running order: a warm-up, main songs that alternate high and low energy, water breaks, and a cool-down. Every song comes with steps ready to teach.</p>
+    <div class="form">
+      <div class="field"><span class="label">Class length</span><div class="chips" id="plan-len"></div></div>
+      <div class="field"><span class="label">Level</span><div class="chips" id="plan-level"></div></div>
+      <div class="row"><button class="btn" id="plan-go">Build class plan</button></div>
+    </div>
+    <div id="plan-out"></div>
+    <h3 class="sub">Saved classes</h3>
+    <div class="list" id="plan-saved"></div>
+  </section>
+
+  <!-- SONGS -->
+  <section id="tab-songs" hidden>
+    <h2>Song library</h2>
+    <p class="lede">Zumba favorites and trending dance tracks, sorted by rhythm. BPMs are approximate, so use − and + in Teach mode to lock in with the track.</p>
+    <div class="field" style="margin-bottom:12px"><label class="label" for="song-q">Search</label><input id="song-q" placeholder="Song or artist" style="border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px"></div>
+    <div class="chips" id="song-filter"></div>
+    <ul class="list" id="songs"></ul>
+    <h3 class="sub">Add your own song</h3>
+    <form class="form" id="add-song">
+      <div class="three">
+        <label class="field" for="as-title"><span class="label">Title</span><input id="as-title" required></label>
+        <label class="field" for="as-artist"><span class="label">Artist</span><input id="as-artist"></label>
+        <label class="field" for="as-bpm"><span class="label">BPM</span><input id="as-bpm" type="number" min="60" max="220" inputmode="numeric" placeholder="120"></label>
+      </div>
+      <label class="field" for="as-r"><span class="label">Use it for</span><select id="as-r"></select></label>
+      <div class="row"><button class="btn" type="submit">Add song</button><span class="muted" id="as-msg"></span></div>
+    </form>
+  </section>
+
+  <!-- ROUTINE -->
+  <section id="tab-routine" hidden>
+    <h2>Build a routine</h2>
+    <p class="lede">Make a routine for one song. You get a step for each part of the song, ready to teach.</p>
+    <div class="form">
+      <div class="field"><span class="label">Rhythm</span><div class="chips" id="gen-rhythm"></div></div>
+      <div class="field"><span class="label">Level</span><div class="chips" id="gen-level"></div></div>
+      <div class="two">
+        <label class="field" for="gen-title"><span class="label">Song title</span><input id="gen-title" placeholder="e.g. Suavemente"></label>
+        <label class="field" for="gen-bpm"><span class="label">Song BPM</span><input id="gen-bpm" type="number" min="60" max="220" inputmode="numeric"></label>
+      </div>
+      <div class="row"><button class="btn" id="gen-go">Generate routine</button></div>
+    </div>
+    <div id="gen-out"></div>
+    <h3 class="sub">Saved routines</h3>
+    <div class="list" id="saved"></div>
+  </section>
+
+  <!-- STEPS -->
+  <section id="tab-steps" hidden>
+    <h2>Step library</h2>
+    <p class="lede">Warm-up moves, the core steps of each rhythm, and cool-down stretches, each with a short cue to call out.</p>
+    <div class="chips" id="lib-filter"></div>
+    <div class="grid" id="lib" style="margin-top:14px"></div>
+    <h2>Class cues</h2>
+    <p class="lede">Short phrases that cut through loud music. Tap the speaker to hear one read aloud.</p>
+    <div id="phrases"></div>
+  </section>
+
+  <!-- TEACH -->
+  <section id="tab-teach" hidden>
+    <h2 id="t-title">Teach mode</h2>
+    <p class="lede" id="t-sub">Prop your phone up where you can see it. The next move is flagged on count 5 so you can cue early.</p>
+    <div class="stage">
+      <div class="secline"><span id="t-sec">Verse</span><span id="t-eight">8-count 1 of 4</span></div>
+      <div class="count one" id="t-count">1</div>
+      <div class="beats" id="t-beats"></div>
+      <div class="now">
+        <h3 id="t-step"></h3>
+        <div class="cueline" id="t-cue"></div>
+      </div>
+      <div class="next" id="t-next"><span class="label">Next</span><br><b id="t-nextname"></b> <span class="muted" id="t-nextcue"></span></div>
+      <div class="controls">
+        <button class="btn" id="t-play">Start</button>
+        <div class="bpm"><button id="t-slower" aria-label="Slower">−</button><output id="t-bpm">140 BPM</output><button id="t-faster" aria-label="Faster">+</button></div>
+      </div>
+      <div class="controls">
+        <button class="btn ghost sm toggle" id="t-half" aria-pressed="false">Half speed</button>
+        <button class="btn ghost sm toggle" id="t-click" aria-pressed="true">Beat click</button>
+        <button class="btn ghost sm toggle" id="t-voice" aria-pressed="false">Speak next cue</button>
+        <button class="btn ghost sm" id="t-restart">Restart</button>
+      </div>
+      <div class="howto">
+        <span class="label">How to do it</span>
+        <p id="t-how" style="margin:0"></p>
+        <p id="t-arms" class="muted" style="margin:0"></p>
+        <p class="mirror">You face the class, so mirror: step left when you call “right.”</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Sections"><div>
+  <button data-tab="plan">Plan</button>
+  <button data-tab="songs">Songs</button>
+  <button data-tab="routine">Routine</button>
+  <button data-tab="steps">Steps</button>
+  <button data-tab="teach">Teach</button>
+</div></nav>
+
+<script>
+const RH = {
+  warmup:{name:'Warm-up', bpm:'110–130', def:120, color:'var(--c-warm)'},
+  merengue:{name:'Merengue', bpm:'125–160', def:140, color:'var(--c-mer)'},
+  salsa:{name:'Salsa', bpm:'160–210', def:190, color:'var(--c-sal)'},
+  cumbia:{name:'Cumbia', bpm:'85–110', def:95, color:'var(--c-cum)'},
+  reggaeton:{name:'Reggaeton', bpm:'85–105', def:95, color:'var(--c-reg)'},
+  pop:{name:'Pop & K-pop', bpm:'100–160', def:120, color:'var(--c-pop)'},
+  cooldown:{name:'Cool-down', bpm:'slow', def:70, color:'var(--c-cool)'}
+};
+const MAIN = ['merengue','salsa','cumbia','reggaeton','pop'];
+const LEVELS = [{v:1,name:'Easy'},{v:2,name:'Mixed'},{v:3,name:'Power'}];
+const STEPS = [
+ {id:'wu-march',r:'warmup',name:'Easy March',lvl:1,how:'Gentle march in place, lifting the knees a little higher every 8 counts.',arms:'Swing the arms naturally.',en:'Easy march!'},
+ {id:'wu-reach',r:'warmup',name:'Step Touch Reach',lvl:1,how:'Step touch side to side, reaching the opposite arm up and over.',arms:'Long reach toward the ceiling.',en:'Reach up!'},
+ {id:'wu-shoulder',r:'warmup',name:'Shoulder Rolls',lvl:1,how:'Keep a light step touch and roll the shoulders back for 4 counts, forward for 4.',arms:'Arms relaxed by the sides.',en:'Roll the shoulders!'},
+ {id:'wu-hips',r:'warmup',name:'Hip Circles',lvl:1,how:'Feet hip-width, circle the hips to the right for 4 counts, then to the left for 4.',arms:'Hands on the hips.',en:'Circle the hips!'},
+ {id:'wu-heel',r:'warmup',name:'Heel Digs',lvl:1,how:'Tap alternating heels forward on each count with a small bounce.',arms:'Pull fists in to the chest on each dig.',en:'Heels!'},
+ {id:'wu-knee',r:'warmup',name:'Low Knee Lifts',lvl:1,how:'Alternate gentle knee lifts to just below hip height.',arms:'Bring the opposite elbow down to meet the knee.',en:'Knees!'},
+ {id:'wu-grape',r:'warmup',name:'Slow Grapevine',lvl:1,how:'Step right, cross left behind, step right, tap. Repeat left. Keep it small and smooth.',arms:'Open arms wide on the tap.',en:'Grapevine!'},
+
+ {id:'mer-march',r:'merengue',name:'Merengue March',lvl:1,how:'March in place on every beat with soft knees, letting the hips sway side to side.',arms:'Elbows bent, pump the arms at chest height.',en:'March it out!'},
+ {id:'mer-touch',r:'merengue',name:'Step Touch',lvl:1,how:'Step right and tap the left foot beside it, then step left and tap right. Keep a bounce.',arms:'Clap on every tap.',en:'Step, touch!'},
+ {id:'mer-walk',r:'merengue',name:'Forward & Back',lvl:1,how:'Four marching steps forward on 1–4, four steps back on 5–8.',arms:'Roll the arms forward, then backward.',en:'Forward... and back!'},
+ {id:'mer-elbow',r:'merengue',name:'Elbow Punch',lvl:2,how:'Keep the merengue march while driving the elbows out and back.',arms:'Fists at the chest, elbows punch out to the sides.',en:'Elbows!'},
+ {id:'mer-turn',r:'merengue',name:'Merengue Turn',lvl:2,how:'Keep marching while turning one full circle over 8 counts.',arms:'Arms up, wave overhead.',en:'Turn around!'},
+ {id:'mer-knee',r:'merengue',name:'Knee Lift March',lvl:3,how:'Lift alternating knees to hip height on every beat, staying on the balls of the feet.',arms:'Tap the knee with the opposite hand.',en:'Knees up!'},
+
+ {id:'sal-basic',r:'salsa',name:'Salsa Basic',lvl:1,how:'Right foot forward on 1, rock back on 2, together on 3, hold 4. Left foot back on 5, rock 6, together 7, hold 8.',arms:'Hands at the waist, shoulders loose.',en:'Forward, back!'},
+ {id:'sal-side',r:'salsa',name:'Side Basic',lvl:1,how:'Step out right on 1, rock in on 2, together on 3, hold. Repeat to the left on 5–8.',arms:'Open the arm on the side you step.',en:'Side to side!'},
+ {id:'sal-back',r:'salsa',name:'Back Break',lvl:2,how:'Cross the right foot behind on 1, rock forward on 2, center on 3, hold. Alternate sides.',arms:'Swing the arm on the stepping side back.',en:'Step back!'},
+ {id:'sal-suzy',r:'salsa',name:'Suzy Q',lvl:3,how:'Travel sideways: cross the right foot in front, twist the heel out, step. Twist the hips with every step.',arms:'Hands up by the shoulders, wiggle the fingers.',en:'Travel and twist!'},
+ {id:'sal-kick',r:'salsa',name:'Salsa Kick',lvl:3,how:'Salsa basic, but kick forward in place of the forward step on 1 and 5.',arms:'Push both arms forward on the kick.',en:'Kick!'},
+
+ {id:'cum-basic',r:'cumbia',name:'Cumbia Basic',lvl:1,how:'Right foot steps back on 1, returns on 2; left foot back on 3, returns on 4. Lean slightly forward.',arms:'Swing the arms low, like holding a skirt.',en:'Back and center!'},
+ {id:'cum-march',r:'cumbia',name:'Cumbia March',lvl:1,how:'A small, low march, stepping slightly back on each downbeat.',arms:'Swing the arms across the body.',en:'Small steps!'},
+ {id:'cum-sleepy',r:'cumbia',name:'Sleepy Leg',lvl:2,how:'Travel in a circle, dragging the right foot behind you and dipping on each drag.',arms:'One hand behind the head, the other relaxed.',en:'Drag that leg!'},
+ {id:'cum-turn',r:'cumbia',name:'Cumbia Circle',lvl:2,how:'Keep the cumbia basic going while circling once over 8 counts.',arms:'One arm up, the other on the hip.',en:'Circle around!'},
+ {id:'cum-hop',r:'cumbia',name:'Cumbia Hop Back',lvl:3,how:'Hop on the left as the right foot taps back on 1, switch on 2. Stay low and quick.',arms:'Arms swing opposite to the feet.',en:'Hop it back!'},
+
+ {id:'reg-bounce',r:'reggaeton',name:'Reggaeton Bounce',lvl:1,how:'Feet wide, bend the knees and bounce on every beat.',arms:'Pump the arms down on each bounce.',en:'Bounce!'},
+ {id:'reg-stomp',r:'reggaeton',name:'Stomp & Clap',lvl:1,how:'Stomp right on 1, clap on 2, stomp left on 3, clap on 4.',arms:'Clap overhead.',en:'Stomp, clap!'},
+ {id:'reg-step',r:'reggaeton',name:'Step Tap Pump',lvl:2,how:'Step right and tap the left foot behind; step left and tap right. Push the chest forward on each tap.',arms:'Punch one arm down on the tap.',en:'Step and pump!'},
+ {id:'reg-roll',r:'reggaeton',name:'Body Roll',lvl:2,how:'Roll from the chest down through the hips over 2 counts with feet planted wide.',arms:'Hands slide down the front of the body.',en:'Roll it down!'},
+ {id:'reg-jump',r:'reggaeton',name:'Power Jump',lvl:3,how:'Squat on 1–2, jump on 3, land on 4. Low-impact option: squat and rise to the toes.',arms:'Swing the arms up on the jump.',en:'Jump!'},
+
+ {id:'pop-grape',r:'pop',name:'Grapevine',lvl:1,how:'Step right, cross left behind, step right, tap left. Repeat to the left on 5–8.',arms:'Clap on the tap.',en:'Grapevine right!'},
+ {id:'pop-box',r:'pop',name:'Box Step',lvl:1,how:'Cross right over left on 1, step left back on 2, right back on 3, left forward on 4.',arms:'Snap the fingers on each step.',en:'Box it!'},
+ {id:'pop-shoulder',r:'pop',name:'Shoulder Pop Walk',lvl:2,how:'Walk forward 4 counts popping one shoulder up on each step, then walk back 4.',arms:'Arms loose, let the shoulders lead.',en:'Pop those shoulders!'},
+ {id:'pop-kbc',r:'pop',name:'Kick Ball Change',lvl:2,how:'Kick right on 1, step onto the ball of the right foot on "and", shift weight to the left on 2. Repeat.',arms:'Punch forward on the kick.',en:'Kick ball change!'},
+ {id:'pop-gallop',r:'pop',name:'Gallop Hop',lvl:2,how:'Knees bent, hop right-right then left-left, like riding a horse in place.',arms:'Wrists crossed in front, one hand circling overhead.',en:'Giddy up!'},
+ {id:'pop-jack',r:'pop',name:'Jumping Jacks',lvl:3,how:'Classic jumping jacks on every count. Low-impact option: step out side to side.',arms:'Arms overhead on the open.',en:'Jacks!'},
+ {id:'pop-run',r:'pop',name:'Running Man',lvl:3,how:'Lift the right knee as the left foot slides back, then switch. Stay light on the feet.',arms:'Pump the arms like running.',en:'Run it!'},
+
+ {id:'cd-breathe',r:'cooldown',name:'Deep Breaths',lvl:1,how:'Feet wide. Inhale and sweep the arms up for 4 counts, exhale and lower them for 4.',arms:'Big slow circle up and down.',en:'Breathe in... and out.'},
+ {id:'cd-side',r:'cooldown',name:'Side Reach Stretch',lvl:1,how:'Reach the right arm up and over to the left and hold. Switch sides halfway.',arms:'Other hand on the hip.',en:'Reach and hold.'},
+ {id:'cd-chest',r:'cooldown',name:'Chest Opener',lvl:1,how:'Clasp the hands behind the back and lift gently while opening the chest.',arms:'Hands clasped behind.',en:'Open the chest.'},
+ {id:'cd-ham',r:'cooldown',name:'Hamstring Stretch',lvl:1,how:'Right heel forward, toe up. Sit back into the left hip and lean forward with a flat back. Switch legs halfway.',arms:'Hands on the bent thigh.',en:'Sit back and lean.'},
+ {id:'cd-quad',r:'cooldown',name:'Quad Stretch',lvl:1,how:'Hold the right ankle behind you, knees together, hips forward. Switch legs halfway. Use a wall for balance.',arms:'Free hand out for balance.',en:'Hold the ankle.'},
+ {id:'cd-calf',r:'cooldown',name:'Calf Stretch',lvl:1,how:'Step the right foot back, heel down, front knee bent. Switch legs halfway.',arms:'Hands on the front thigh.',en:'Heel down.'},
+ {id:'cd-shoulder',r:'cooldown',name:'Shoulder Stretch',lvl:1,how:'Bring the right arm across the chest and hold it with the left hand. Switch halfway.',arms:'Pull gently at the elbow.',en:'Arm across.'}
+];
+const byId = id => STEPS.find(s=>s.id===id);
+
+/* [id, title, artist, rhythm, approx BPM, style] */
+const SONGS_BASE = [
+ ['w1','Uptown Funk','Mark Ronson ft. Bruno Mars','warmup',115,'Funk pop'],
+ ['w2',"Can't Stop the Feeling!",'Justin Timberlake','warmup',113,'Pop'],
+ ['w3','Shut Up and Dance','Walk the Moon','warmup',128,'Pop rock'],
+ ['w4','Sugar','Maroon 5','warmup',120,'Pop'],
+ ['m1','Suavemente','Elvis Crespo','merengue',140,'Merengue'],
+ ['m2','Danza Kuduro','Don Omar ft. Lucenzo','merengue',130,'Kuduro'],
+ ['m3','Waka Waka (This Time for Africa)','Shakira','merengue',127,'Afro-pop'],
+ ['m4','Pepas','Farruko','merengue',130,'Guaracha'],
+ ['m5','La Bomba','King África','merengue',135,'Latin dance'],
+ ['s1','Vivir Mi Vida','Marc Anthony','salsa',190,'Salsa'],
+ ['s2','La Vida Es Un Carnaval','Celia Cruz','salsa',196,'Salsa'],
+ ['s3','Quimbara','Celia Cruz & Johnny Pacheco','salsa',200,'Salsa'],
+ ['s4','Valió la Pena','Marc Anthony','salsa',190,'Salsa'],
+ ['c1','La Bicicleta','Carlos Vives & Shakira','cumbia',92,'Vallenato pop'],
+ ['c2','La Pollera Colorá','Wilson Choperena','cumbia',95,'Classic cumbia'],
+ ['c3','Baila Esta Cumbia','Selena','cumbia',92,'Tejano cumbia'],
+ ['c4',"Hips Don't Lie",'Shakira ft. Wyclef Jean','cumbia',100,'Latin pop'],
+ ['r1','Gasolina','Daddy Yankee','reggaeton',96,'Reggaeton'],
+ ['r2','Despacito','Luis Fonsi ft. Daddy Yankee','reggaeton',89,'Reggaeton pop'],
+ ['r3','Taki Taki','DJ Snake ft. Selena Gomez, Ozuna & Cardi B','reggaeton',95,'Reggaeton'],
+ ['r4','Tusa','Karol G & Nicki Minaj','reggaeton',101,'Reggaeton'],
+ ['r5','Con Calma','Daddy Yankee & Snow','reggaeton',94,'Reggaeton'],
+ ['r6','Mi Gente','J Balvin & Willy William','reggaeton',105,'Moombahton'],
+ ['p1','Gangnam Style','PSY','pop',132,'K-pop'],
+ ['p2','APT.','ROSÉ & Bruno Mars','pop',149,'K-pop / pop'],
+ ['p3','Dynamite','BTS','pop',114,'K-pop'],
+ ['p4','Levitating','Dua Lipa','pop',103,'Dance pop'],
+ ['p5','Espresso','Sabrina Carpenter','pop',104,'Pop'],
+ ['p6','Shake It Off','Taylor Swift','pop',160,'Pop'],
+ ['p7','Pump It','Black Eyed Peas','pop',154,'Hip-hop'],
+ ['p8','Jerusalema','Master KG ft. Nomcebo Zikode','pop',124,'Afro-house'],
+ ['p9','Macarena (Bayside Boys Remix)','Los del Río','pop',103,'Party classic'],
+ ['d1','Perfect','Ed Sheeran','cooldown',70,'Ballad'],
+ ['d2','A Thousand Years','Christina Perri','cooldown',70,'Ballad'],
+ ['d3','Photograph','Ed Sheeran','cooldown',70,'Ballad'],
+ ['d4','Spring Day','BTS','cooldown',70,'K-pop ballad'],
+ ['d5','lovely','Billie Eilish & Khalid','cooldown',70,'Ballad']
+].map(([id,title,artist,r,bpm,style])=>({id,title,artist,r,bpm,style}));
+
+const PHRASES = [
+ {g:'Counting in',items:[['5, 6, 7, 8!','Count in before every new move'],['Last one!','Final rep before a change'],['4 more','Quick countdown'],['Here we go!','Start of the song']]},
+ {g:'Directions',items:[['Right!','Mirror it: you step left'],['Left!','Mirror it: you step right'],['Forward','Point toward the class'],['Back','Thumb over your shoulder'],['Turn!','Circle a finger overhead'],['Other side','Sweep your arm across'],['Center','Both palms in']]},
+ {g:'Body',items:[['Arms up!','Add arms once feet are solid'],['Hips!','Hands on hips'],['Bend the knees','Protects knees on jumps'],['Shoulders!','Shimmy cue'],['Clap!','Clap on the beat yourself'],['Jump!','Offer the low option too']]},
+ {g:'Pace',items:[['Slow it down','Use with Half speed'],['Double time!','Same step, twice as fast'],['One more time','Repeat the 8-count'],['Ready, go!','Before the music drops in'],['Follow me','Lead without words']]},
+ {g:'Encouragement',items:[['Nice!','Short and often'],['You got this!','Mid-song energy dip'],['Smile!','Keeps it a party'],['Make some noise!','Chorus build'],['Beautiful!','After a tough step']]},
+ {g:'Class care',items:[['Grab water','Between songs'],['Rest if you need to','Say it during power tracks'],['Low option','March instead of jump'],['Breathe','Cool-down and stretch'],["Let's stretch",'Final song']]}
+];
+const SONG = [['Verse',4],['Pre-chorus',2],['Chorus',4],['Bridge',2]];
+const ORDER = ['Verse','Pre-chorus','Chorus','Verse','Pre-chorus','Chorus','Bridge','Chorus'];
+const ROTATION = ['merengue','reggaeton','salsa','pop','cumbia','merengue','pop','reggaeton','salsa','pop','cumbia','merengue'];
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dot = r => `<span class="dot" style="background:${RH[r].color}"></span>`;
+const bpmLabel = s => s.r==='cooldown' ? 'slow count' : `~${s.bpm} BPM`;
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+const store = {
+  get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+const allSongs = () => SONGS_BASE.concat(store.get('zc-songs',[]));
+const songById = id => allSongs().find(s=>s.id===id);
+function say(text){
+  try{ if(!('speechSynthesis' in window)) return;
+    const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=1.05;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }catch(e){}
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-say]'); if(b) say(b.dataset.say)});
+function armDelete(btn, fn){ if(btn.dataset.armed) fn(); else {btn.dataset.armed='1'; btn.textContent='Tap again to delete'} }
+
+/* Tabs */
+function show(tab){
+  document.querySelectorAll('main > section').forEach(s=>s.hidden = s.id!=='tab-'+tab);
+  document.querySelectorAll('.tabs button').forEach(b=>{ if(b.dataset.tab===tab) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  try{localStorage.setItem('zc-tab',tab)}catch(e){}
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>show(b.dataset.tab));
+
+/* Sequences */
+function makeRoutine(r, level, title, bpm){
+  const pool=shuffle(STEPS.filter(s=>s.r===r && s.lvl<=level)); const parts={};
+  SONG.forEach(([sec],i)=>parts[sec]=pool[i%pool.length].id);
+  return {id:uid(), title, rhythm:r, level, bpm:bpm||RH[r].def, parts};
+}
+function seqFrom(rt){return ORDER.map(sec=>({sec,step:rt.parts[sec],eights:SONG.find(x=>x[0]===sec)[1]}))}
+function warmSeq(){
+  const rest=shuffle(STEPS.filter(s=>s.r==='warmup'&&s.id!=='wu-march')).slice(0,5);
+  return [{sec:'Warm-up',step:'wu-march',eights:4}, ...rest.map(s=>({sec:'Warm-up',step:s.id,eights:4}))];
+}
+function coolSeq(){
+  const rest=shuffle(STEPS.filter(s=>s.r==='cooldown'&&s.id!=='cd-breathe')).slice(0,5);
+  return [{sec:'Cool-down',step:'cd-breathe',eights:2}, ...rest.map(s=>({sec:'Cool-down',step:s.id,eights:4})), {sec:'Cool-down',step:'cd-breathe',eights:2}];
+}
+function teachSong(song, level){
+  if(song.r==='warmup') return {title:song.title, sub:song.artist, bpm:song.bpm, seq:warmSeq()};
+  if(song.r==='cooldown') return {title:song.title, sub:song.artist, bpm:song.bpm, seq:coolSeq()};
+  const rt=makeRoutine(song.r, level||2, song.title, song.bpm);
+  return {title:song.title, sub:song.artist, bpm:rt.bpm, seq:seqFrom(rt)};
+}
+
+/* ---------- PLAN ---------- */
+let planOpts={len:60, level:2}; let plan=null;
+function pickSong(r, used){
+  let c=shuffle(allSongs().filter(s=>s.r===r && !used.has(s.id)));
+  if(!c.length && MAIN.includes(r)) c=shuffle(allSongs().filter(s=>MAIN.includes(s.r) && !used.has(s.id)));
+  if(!c.length) c=shuffle(allSongs().filter(s=>s.r===r));
+  const s=c[0]; used.add(s.id); return s;
+}
+function buildItem(kind, song, level){
+  if(kind==='main'){ const rt=makeRoutine(song.r, level, song.title, song.bpm); return {kind, song:song.id, routine:rt}; }
+  return {kind, song:song.id, seq: kind==='warm'?warmSeq():coolSeq()};
+}
+function makePlan(example){
+  const n = planOpts.len===45 ? 8 : 12, used=new Set(), items=[];
+  items.push(buildItem('warm', pickSong('warmup',used), planOpts.level));
+  ROTATION.slice(0,n).forEach(r=>items.push(buildItem('main', pickSong(r,used), planOpts.level)));
+  items.push(buildItem('cool', pickSong('cooldown',used), planOpts.level));
+  plan={id:uid(), title:example?'Example class':`${planOpts.len}-minute class`, len:planOpts.len, level:planOpts.level, items, example:!!example};
+  renderPlan();
+}
+function itemTeach(it){
+  const s=songById(it.song)||{title:'Song',artist:'',bpm:120};
+  if(it.kind==='main') return {title:s.title, sub:s.artist, bpm:it.routine.bpm, seq:seqFrom(it.routine)};
+  return {title:s.title, sub:s.artist, bpm:s.bpm, seq:it.seq};
+}
+function renderPlanControls(){
+  $('#plan-len').innerHTML=[45,60].map(v=>`<button class="chip" aria-pressed="${planOpts.len===v}" data-v="${v}">${v} min</button>`).join('');
+  $('#plan-len').querySelectorAll('button').forEach(b=>b.onclick=()=>{planOpts.len=+b.dataset.v;renderPlanControls()});
+  $('#plan-level').innerHTML=LEVELS.map(l=>`<button class="chip" aria-pressed="${planOpts.level===l.v}" data-v="${l.v}">${'●'.repeat(l.v)} ${l.name}</button>`).join('');
+  $('#plan-level').querySelectorAll('button').forEach(b=>b.onclick=()=>{planOpts.level=+b.dataset.v;renderPlanControls()});
+}
+function renderPlan(){
+  if(!plan){$('#plan-out').innerHTML='';return}
+  let t=0, mainCount=0, rows=[];
+  plan.items.forEach((it,i)=>{
+    const s=songById(it.song); if(!s) return;
+    const mm=`${Math.floor(t)}:${t%1?'30':'00'}`;
+    let detail='';
+    if(it.kind==='main') detail=`Chorus: ${esc(byId(it.routine.parts['Chorus']).name)} · Verse: ${esc(byId(it.routine.parts['Verse']).name)}`;
+    else detail=`${it.seq.filter((x,j,a)=>a.findIndex(y=>y.step===x.step)===j).length} moves: ${it.seq.slice(0,3).map(x=>esc(byId(x.step).name)).join(', ')}…`;
+    const role = it.kind==='warm'?'Warm-up':it.kind==='cool'?'Cool-down':RH[s.r].name;
+    rows.push(`<li class="it stripe" style="border-left-color:${RH[s.r].color}">
+      <div class="when">${mm}</div>
+      <div class="what"><b>${esc(s.title)}</b><span>${esc(s.artist)} · ${dot(s.r)} ${role} · ${bpmLabel(s)}</span><br><span>${detail}</span></div>
+      <div class="act"><button class="btn sm" data-pt="${i}">Teach</button><button class="btn ghost sm" data-ps="${i}">Swap song</button></div></li>`);
+    t += it.kind==='main'?3.5:4;
+    if(it.kind==='main'){ mainCount++; if(mainCount%4===0 && mainCount< (plan.len===45?8:12)){ rows.push(`<li class="it brk"><div class="when">${Math.floor(t)}:${t%1?'30':'00'}</div><div class="what"><span>Water break, about 1 minute</span></div></li>`); t+=1; } }
+  });
+  const lv=LEVELS[plan.level-1].name;
+  $('#plan-out').innerHTML=`
+    <h2 style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${esc(plan.title)} ${plan.example?'<span class="example">Example</span>':''}</h2>
+    <p class="summary"><span>${plan.items.length} songs</span><span>About ${Math.round(t)} minutes</span><span>${lv} level</span></p>
+    <ol class="list">${rows.join('')}</ol>
+    <div class="tips"><b>Running the class</b><ul>
+      <li>Times are approximate, based on 3 to 4 minutes per song.</li>
+      <li>The order alternates fast and slower rhythms so the class can recover between peaks.</li>
+      <li>Tap Teach to open a song's steps with the beat counter.</li>
+    </ul></div>
+    <div class="row"><label class="field" for="plan-name" style="flex:1 1 220px"><span class="label">Class name</span><input id="plan-name" value="${esc(plan.example?'':plan.title)}" placeholder="e.g. Tuesday evening class"></label></div>
+    <div class="row" style="margin-top:10px"><button class="btn" id="plan-save">Save class</button><button class="btn ghost" id="plan-again">Shuffle everything</button></div>`;
+  $('#plan-out').querySelectorAll('[data-pt]').forEach(b=>b.onclick=()=>{loadTeach(itemTeach(plan.items[+b.dataset.pt]));show('teach')});
+  $('#plan-out').querySelectorAll('[data-ps]').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.ps, it=plan.items[i], cur=songById(it.song);
+    const used=new Set(plan.items.map(x=>x.song));
+    const r = it.kind==='warm'?'warmup':it.kind==='cool'?'cooldown':cur.r;
+    const opts=shuffle(allSongs().filter(s=>s.r===r && !used.has(s.id)));
+    if(!opts.length){ b.textContent='No other songs'; return; }
+    plan.items[i]=buildItem(it.kind, opts[0], plan.level); plan.example=false; renderPlan();
+  });
+  $('#plan-again').onclick=()=>{planOpts.len=plan.len;planOpts.level=plan.level;makePlan()};
+  $('#plan-save').onclick=e=>{
+    const name=$('#plan-name').value.trim(); if(name) plan.title=name;
+    plan.example=false;
+    const list=store.get('zc-plans',[]).filter(x=>x.id!==plan.id); list.unshift(plan); store.set('zc-plans',list);
+    renderPlan(); $('#plan-save').textContent='Saved'; renderPlanSaved();
+  };
+}
+function renderPlanSaved(){
+  const list=store.get('zc-plans',[]);
+  $('#plan-saved').innerHTML = list.length ? list.map(p=>`
+    <div class="it"><div class="when">${p.len}m</div><div class="what"><b>${esc(p.title)}</b><span>${p.items.length} songs · ${LEVELS[p.level-1].name}</span></div>
+    <div class="act"><button class="btn sm" data-o="${p.id}">Open</button><button class="btn ghost sm" data-d="${p.id}">Delete</button></div></div>`).join('')
+    : '<p class="muted">Classes you save appear here. They stay on this phone or browser only.</p>';
+  $('#plan-saved').querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{plan=JSON.parse(JSON.stringify(list.find(x=>x.id===b.dataset.o)));renderPlan();$('#plan-out').scrollIntoView({behavior:'smooth'})});
+  $('#plan-saved').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>armDelete(b,()=>{store.set('zc-plans',list.filter(x=>x.id!==b.dataset.d));renderPlanSaved()}));
+}
+$('#plan-go').onclick=()=>makePlan();
+
+/* ---------- SONGS ---------- */
+let songFilter='all';
+function renderSongs(){
+  const q=$('#song-q').value.trim().toLowerCase();
+  $('#song-filter').innerHTML=[['all','All']].concat(Object.entries(RH).map(([k,v])=>[k,v.name])).map(([k,n])=>
+    `<button class="chip" aria-pressed="${songFilter===k}" data-f="${k}">${k==='all'?'':dot(k)}${n}</button>`).join('');
+  $('#song-filter').querySelectorAll('button').forEach(b=>b.onclick=()=>{songFilter=b.dataset.f;renderSongs()});
+  const custom=new Set(store.get('zc-songs',[]).map(s=>s.id));
+  const list=allSongs().filter(s=>(songFilter==='all'||s.r===songFilter) && (!q || (s.title+' '+s.artist).toLowerCase().includes(q)));
+  $('#songs').innerHTML = list.length ? list.map(s=>{
+    const special = s.r==='warmup'||s.r==='cooldown';
+    return `<li class="it stripe" style="border-left-color:${RH[s.r].color}">
+      <div class="when">${s.r==='cooldown'?'slow':s.bpm}</div>
+      <div class="what"><b>${esc(s.title)}</b><span>${esc(s.artist||'')} · ${dot(s.r)} ${RH[s.r].name} · ${esc(s.style||'')}${custom.has(s.id)?' · Your song':''}</span></div>
+      <div class="act">
+        <button class="btn sm" data-teach="${s.id}">Teach</button>
+        ${special?'':`<button class="btn ghost sm" data-build="${s.id}">Routine</button>`}
+        <a class="btn ghost sm" href="https://www.youtube.com/results?search_query=${encodeURIComponent(s.title+' '+(s.artist||'')+' zumba')}" target="_blank" rel="noopener" style="text-decoration:none">YouTube</a>
+        ${custom.has(s.id)?`<button class="btn ghost sm" data-del="${s.id}">Delete</button>`:''}
+      </div></li>`}).join('') : '<p class="muted">No songs match that search.</p>';
+  $('#songs').querySelectorAll('[data-teach]').forEach(b=>b.onclick=()=>{loadTeach(teachSong(songById(b.dataset.teach),2));show('teach')});
+  $('#songs').querySelectorAll('[data-build]').forEach(b=>b.onclick=()=>{
+    const s=songById(b.dataset.build); gen.rhythm=s.r; $('#gen-title').value=s.title; $('#gen-bpm').value=s.bpm;
+    renderGenControls(); generate(); show('routine');
+  });
+  $('#songs').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>armDelete(b,()=>{store.set('zc-songs',store.get('zc-songs',[]).filter(x=>x.id!==b.dataset.del));renderSongs()}));
+}
+$('#song-q').oninput=renderSongs;
+$('#as-r').innerHTML=Object.entries(RH).map(([k,v])=>`<option value="${k}">${v.name}</option>`).join('');
+$('#add-song').addEventListener('submit',e=>{
+  e.preventDefault();
+  const title=$('#as-title').value.trim(); if(!title) return;
+  const r=$('#as-r').value, bpmIn=parseInt($('#as-bpm').value,10);
+  const s={id:'u-'+uid(), title, artist:$('#as-artist').value.trim(), r, bpm:(bpmIn>=60&&bpmIn<=220)?bpmIn:RH[r].def, style:'Your song'};
+  store.set('zc-songs', store.get('zc-songs',[]).concat(s));
+  $('#as-title').value=''; $('#as-artist').value=''; $('#as-bpm').value='';
+  $('#as-msg').textContent=`Added “${title}”. It can now appear in class plans.`;
+  renderSongs();
+});
+
+/* ---------- STEP LIBRARY ---------- */
+let libFilter='all';
+function renderLib(){
+  $('#lib-filter').innerHTML=[['all','All']].concat(Object.entries(RH).map(([k,v])=>[k,v.name])).map(([k,n])=>
+    `<button class="chip" aria-pressed="${libFilter===k}" data-f="${k}">${k==='all'?'':dot(k)}${n}</button>`).join('');
+  $('#lib-filter').querySelectorAll('button').forEach(b=>b.onclick=()=>{libFilter=b.dataset.f;renderLib()});
+  $('#lib').innerHTML = STEPS.filter(s=>libFilter==='all'||s.r===libFilter).map(s=>`
+    <article class="card">
+      <span class="tag">${dot(s.r)}${RH[s.r].name}</span>
+      <h3>${esc(s.name)}${MAIN.includes(s.r)?`<span class="lvl">${'●'.repeat(s.lvl)}${'○'.repeat(3-s.lvl)} ${LEVELS[s.lvl-1].name}</span>`:''}</h3>
+      <p>${esc(s.how)}</p>
+      <p class="muted">Arms: ${esc(s.arms)}</p>
+      <div class="cue"><div><small>Call out</small><b>“${esc(s.en)}”</b></div><button class="speak" data-say="${esc(s.en)}" aria-label="Hear cue">🔊</button></div>
+      <div class="row"><button class="btn ghost sm" data-practice="${s.id}">Practice in Teach mode</button></div>
+    </article>`).join('');
+  $('#lib').querySelectorAll('[data-practice]').forEach(b=>b.onclick=()=>{
+    const s=byId(b.dataset.practice);
+    loadTeach({title:s.name, sub:'Practice', bpm:RH[s.r].def, seq:[{sec:'Practice',step:s.id,eights:4}]});
+    show('teach');
+  });
+}
+$('#phrases').innerHTML=PHRASES.map(g=>`<h3 class="sub">${g.g}</h3><div class="phr">${g.items.map(([ph,note])=>`
+  <div class="p"><div style="min-width:0"><b>${ph}</b><small>${note}</small></div><button class="speak" data-say="${ph}" aria-label="Hear ${ph}">🔊</button></div>`).join('')}</div>`).join('')
+  + '<p class="note">Over loud music, one or two words land best. Pair every cue with a hand signal (point for direction, fingers up for counts left) so people at the back can follow.</p>';
+
+/* ---------- ROUTINE ---------- */
+let gen={rhythm:'merengue',level:2,routine:null};
+function generate(){
+  const bpmIn=parseInt($('#gen-bpm').value,10);
+  gen.routine=makeRoutine(gen.rhythm, gen.level, $('#gen-title').value.trim()||RH[gen.rhythm].name+' routine', (bpmIn>=60&&bpmIn<=220)?bpmIn:0);
+  renderGen();
+}
+function reroll(sec){
+  const r=gen.routine, used=Object.values(r.parts);
+  const opts=STEPS.filter(s=>s.r===r.rhythm && s.lvl<=r.level && s.id!==r.parts[sec]);
+  const fresh=opts.filter(s=>!used.includes(s.id)), src=fresh.length?fresh:opts;
+  if(src.length){r.parts[sec]=src[Math.floor(Math.random()*src.length)].id; renderGen();}
+}
+function renderGenControls(){
+  $('#gen-rhythm').innerHTML=MAIN.map(k=>`<button class="chip" aria-pressed="${gen.rhythm===k}" data-r="${k}">${dot(k)}${RH[k].name}</button>`).join('');
+  $('#gen-rhythm').querySelectorAll('button').forEach(b=>b.onclick=()=>{gen.rhythm=b.dataset.r;renderGenControls()});
+  $('#gen-level').innerHTML=LEVELS.map(l=>`<button class="chip" aria-pressed="${gen.level===l.v}" data-l="${l.v}">${'●'.repeat(l.v)} ${l.name}</button>`).join('');
+  $('#gen-level').querySelectorAll('button').forEach(b=>b.onclick=()=>{gen.level=+b.dataset.l;renderGenControls()});
+  $('#gen-bpm').placeholder=RH[gen.rhythm].bpm;
+}
+function renderGen(){
+  const r=gen.routine; if(!r){$('#gen-out').innerHTML='';return}
+  $('#gen-out').innerHTML=`
+    <h2>${esc(r.title)}</h2>
+    <p class="summary"><span>${dot(r.rhythm)} ${RH[r.rhythm].name}</span><span>${r.bpm} BPM</span><span>30 eight-counts</span></p>
+    <ol class="list map">${SONG.map(([sec,n])=>{const s=byId(r.parts[sec]);return `
+      <li class="it"><div class="sec">${sec}<small>${n} × 8</small></div>
+      <div class="what"><b>${esc(s.name)}</b><span>“${esc(s.en)}”</span></div>
+      <div class="act"><button class="btn ghost sm" data-swap="${sec}">Swap</button></div></li>`}).join('')}</ol>
+    <span class="label">Song order</span>
+    <div class="flow">${ORDER.map(s=>`<span>${s}</span>`).join('')}</div>
+    <div class="tips"><b>Teaching order</b><ul>
+      <li>Teach the <b>Chorus</b> step first. It repeats three times, so the class gets the most practice on it.</li>
+      <li>Break each step down at half speed for one 8-count before the music starts.</li>
+      <li>Call the next move on count 5 so people change on count 1.</li>
+    </ul></div>
+    <div class="row"><button class="btn" id="g-teach">Teach this</button><button class="btn ghost" id="g-save">Save routine</button><button class="btn ghost" id="g-again">Shuffle all</button></div>`;
+  $('#gen-out').querySelectorAll('[data-swap]').forEach(b=>b.onclick=()=>reroll(b.dataset.swap));
+  $('#g-again').onclick=generate;
+  $('#g-teach').onclick=()=>{loadTeach({title:r.title,sub:RH[r.rhythm].name,bpm:r.bpm,seq:seqFrom(r)});show('teach')};
+  $('#g-save').onclick=()=>{
+    const list=store.get('zc-routines',[]).filter(x=>x.id!==r.id); list.unshift(JSON.parse(JSON.stringify(r)));
+    store.set('zc-routines',list); $('#g-save').textContent='Saved'; renderSaved();
+  };
+}
+function renderSaved(){
+  const list=store.get('zc-routines',[]).filter(r=>RH[r.rhythm]);
+  $('#saved').innerHTML = list.length ? list.map(r=>`
+    <div class="it"><div class="when">${r.bpm}</div><div class="what"><b>${esc(r.title)}</b><span>${dot(r.rhythm)} ${RH[r.rhythm].name}</span></div>
+    <div class="act"><button class="btn sm" data-t="${r.id}">Teach</button><button class="btn ghost sm" data-o="${r.id}">Open</button><button class="btn ghost sm" data-d="${r.id}">Delete</button></div></div>`).join('')
+    : '<p class="muted">Routines you save appear here. They stay on this phone or browser only.</p>';
+  $('#saved').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const r=list.find(x=>x.id===b.dataset.t);loadTeach({title:r.title,sub:RH[r.rhythm].name,bpm:r.bpm,seq:seqFrom(r)});show('teach')});
+  $('#saved').querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{const r=list.find(x=>x.id===b.dataset.o);gen.routine={...r,level:r.level||2};gen.rhythm=r.rhythm;renderGenControls();renderGen();$('#gen-out').scrollIntoView({behavior:'smooth'})});
+  $('#saved').querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>armDelete(b,()=>{store.set('zc-routines',store.get('zc-routines',[]).filter(x=>x.id!==b.dataset.d));renderSaved()}));
+}
+$('#gen-go').onclick=generate;
+
+/* ---------- TEACH ---------- */
+const T={seq:[],flat:[],bpm:140,half:false,playing:false,b:0,timer:null,next:0,ctx:null,click:true,voice:false,lock:null};
+$('#t-beats').innerHTML='<i></i>'.repeat(8);
+function loadTeach(o){
+  stop(); T.bpm=o.bpm; T.seq=o.seq; T.b=0;
+  T.flat=[]; o.seq.forEach((blk,bi)=>{for(let e=0;e<blk.eights;e++)T.flat.push({bi,e})});
+  $('#t-title').textContent=o.title;
+  $('#t-sub').textContent=(o.sub?o.sub+'. ':'')+'The next move is flagged on count 5 so you can cue early.';
+  renderTeach(false);
+}
+function renderTeach(hit){
+  const beat=T.b%8, ei=Math.floor(T.b/8)%T.flat.length, pos=T.flat[ei];
+  const blk=T.seq[pos.bi], s=byId(blk.step);
+  const nb=T.seq[(pos.bi+1)%T.seq.length], ns=byId(nb.step);
+  const lastEight = pos.e===blk.eights-1, same = T.seq.length===1;
+  const c=$('#t-count'); c.textContent=beat+1; c.classList.toggle('one',beat===0);
+  if(hit){c.classList.remove('hit');void c.offsetWidth;c.classList.add('hit')}
+  $('#t-beats').querySelectorAll('i').forEach((d,i)=>d.className=i===beat?'on':i<beat?'done':'');
+  $('#t-sec').textContent=blk.sec; $('#t-eight').textContent=`8-count ${pos.e+1} of ${blk.eights}`;
+  $('#t-step').textContent=s.name; $('#t-cue').textContent=`“${s.en}”`;
+  $('#t-how').textContent=s.how; $('#t-arms').textContent='Arms: '+s.arms;
+  $('#t-nextname').textContent = same ? 'Same step, keep going' : `${nb.sec}: ${ns.name}`;
+  $('#t-nextcue').textContent = same ? '' : `“${ns.en}”`;
+  $('#t-next').classList.toggle('cuenow', !same && lastEight && beat>=4);
+  $('#t-bpm').textContent=`${T.bpm} BPM`;
+  if(hit && T.voice && lastEight && beat===4 && !same) say(ns.en);
+}
+function tick(){
+  if(!T.playing)return;
+  renderTeach(true);
+  if(T.click && T.ctx){try{
+    const o=T.ctx.createOscillator(),g=T.ctx.createGain();
+    o.frequency.value=(T.b%8===0)?1320:880; g.gain.setValueAtTime(.25,T.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,T.ctx.currentTime+.06);
+    o.connect(g).connect(T.ctx.destination); o.start(); o.stop(T.ctx.currentTime+.07);
+  }catch(e){}}
+  T.next+=60000/T.bpm*(T.half?2:1); T.b++;
+  T.timer=setTimeout(tick,Math.max(0,T.next-performance.now()));
+}
+async function start(){
+  if(!T.flat.length)return;
+  try{T.ctx=T.ctx||new (window.AudioContext||window.webkitAudioContext)(); if(T.ctx.state==='suspended')await T.ctx.resume()}catch(e){}
+  try{T.lock=await navigator.wakeLock?.request('screen')}catch(e){}
+  T.playing=true; $('#t-play').textContent='Pause'; T.next=performance.now(); tick();
+}
+function stop(){
+  T.playing=false; clearTimeout(T.timer); $('#t-play').textContent='Start';
+  try{T.lock&&T.lock.release()}catch(e){} T.lock=null;
+}
+$('#t-play').onclick=()=>T.playing?stop():start();
+$('#t-restart').onclick=()=>{const p=T.playing;stop();T.b=0;renderTeach(false);if(p)start()};
+$('#t-slower').onclick=()=>{T.bpm=Math.max(50,T.bpm-2);renderTeach(false)};
+$('#t-faster').onclick=()=>{T.bpm=Math.min(220,T.bpm+2);renderTeach(false)};
+function tog(id,key){$(id).onclick=()=>{T[key]=!T[key];$(id).setAttribute('aria-pressed',T[key])}}
+tog('#t-half','half'); tog('#t-click','click'); tog('#t-voice','voice');
+
+/* ---------- BOOT ---------- */
+renderPlanControls(); renderPlanSaved(); renderSongs(); renderLib(); renderGenControls(); renderSaved();
+makePlan(true);
+loadTeach(itemTeach(plan.items[0]));
+let startTab='plan'; try{startTab=localStorage.getItem('zc-tab')||'plan'}catch(e){}
+show(['plan','songs','routine','steps','teach'].includes(startTab)?startTab:'plan');
+</script>
+
+</body>
+</html>
